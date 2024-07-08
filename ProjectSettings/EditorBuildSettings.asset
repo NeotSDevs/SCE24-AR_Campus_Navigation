@@ -6,8 +6,14 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/MainMenuScene.unity
+    guid: d83734c1bb12404459c2fb182d612222
+  - enabled: 1
     path: Assets/Samples/ARCore Extensions/1.40.0/Geospatial Sample/Scenes/Geospatial.unity
     guid: 1ed15e9657253406185e4b2c7c5a4fc4
+  - enabled: 1
+    path: Assets/Scenes/PointManagerTestingScene.unity
+    guid: a6d1ed5900b8a104486ae163ee25f87d
   m_configObjects:
     UnityEditor.XR.ARCore.ARCoreSettings: {fileID: 11400000, guid: 49b0c36dfba71224183a7d3052b4f46a, type: 2}
     UnityEditor.XR.ARKit.ARKitSettings: {fileID: 11400000, guid: 845b1e55525fb9f4a807cef7a4c109fa, type: 2}
