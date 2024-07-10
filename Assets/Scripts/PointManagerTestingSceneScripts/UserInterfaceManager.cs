@@ -14,13 +14,16 @@ public class UserInterfaceManager : MonoBehaviour
     // User Panel and children
     public GameObject userPanel;
     public TMP_Dropdown userPanelDropdown;
+    public string userPanelDropdownSelectedItem;
     public Button userPanelNavigateButton;
 
     // Admin Panel and children
     public GameObject adminPanel;
     public GameObject addPointNamePanel;
     public TMP_InputField addPointNamePanelInputField;
+
     public GameObject pointManager;
+    public GameObject playerManager;
 
     // Start is called before the first frame update
     void Start()
@@ -40,10 +43,16 @@ public class UserInterfaceManager : MonoBehaviour
 
     }
 
+    void OnDestroy()
+    {
+        // Remove the listener when the script is destroyed to prevent memory leaks
+        userPanelDropdown.onValueChanged.RemoveListener(OnDropdownValueChanged);
+    }
+
     // This method will be called when the dropdown value changes
     void OnDropdownValueChanged(int index)
     {
-        //string selectedPointName = userPanelDropdown.options[index].text;
+        userPanelDropdownSelectedItem = userPanelDropdown.options[index].text;
         userPanelNavigateButton.interactable = true;
     }
 
@@ -114,5 +123,11 @@ public class UserInterfaceManager : MonoBehaviour
         {
             Debug.Log("Point named " + newPointName + " already exists.");
         }
+    }
+
+    public void OnNavigatePressed()
+    {
+        PlayerManager script = playerManager.GetComponent<PlayerManager>();
+        script.SetDestinationPoint(userPanelDropdownSelectedItem);
     }
 }

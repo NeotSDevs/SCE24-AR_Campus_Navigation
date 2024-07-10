@@ -159,7 +159,7 @@ public class PointManager : MonoBehaviour
 
     public void DrawLines()
     {
-        for (int i = 0; i < pointTransforms.Count - 1; i++)
+        for (int i = 1; i < pointTransforms.Count - 1; i++)
         {
             GameObject newObj = new GameObject();
             LineRenderer newLineRenderer = newObj.AddComponent<LineRenderer>();
