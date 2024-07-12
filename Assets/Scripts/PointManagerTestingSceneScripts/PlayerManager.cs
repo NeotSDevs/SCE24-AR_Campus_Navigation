@@ -39,7 +39,7 @@ public class PlayerManager : MonoBehaviour
         {
             if (!hasFoundFirstPoint)
             {
-                this.GetComponent<SphereCollider>().radius += 0.1f;
+                this.GetComponent<SphereCollider>().radius += 0.04f;
             }
         }
     }

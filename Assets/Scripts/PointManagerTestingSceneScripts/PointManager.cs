@@ -49,7 +49,7 @@ public class PointManager : MonoBehaviour
             textMeshPros.Add(point.transform.GetChild(0).GetComponent<TextMeshPro>());
         }
 
-        DrawLines();
+        //DrawLines();
     }
 
     // Update is called once per frame
@@ -233,13 +233,4 @@ public class PointManager : MonoBehaviour
         PlayerManager playerscript = playerManager.GetComponent<PlayerManager>();
         playerscript.setLoadedPoints();
     }
-
-    // TODO: Figure out how to make one function work in both editor and in game
-    // #if UNITY_EDITOR
-    //     [MenuItem("Test Menu/Load Points")]
-    //     static void LoadPointsMenuItem()
-    //     {
-    //         LoadPoints();
-    //     }
-    // #endif
 }
