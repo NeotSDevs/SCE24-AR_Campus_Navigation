@@ -231,6 +231,5 @@ public class PointManager : MonoBehaviour
         UserInterfaceManager uiscript = userInterfaceManager.GetComponent<UserInterfaceManager>();
         uiscript.UpdateDropdownOptions();
         PlayerManager playerscript = playerManager.GetComponent<PlayerManager>();
-        playerscript.setLoadedPoints();
     }
 }
