@@ -72,3 +72,5 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 Assets/XR/Temp.meta
 /Assets/XR/Temp
+ProjectSettings/EditorBuildSettings.asset
+ProjectSettings/AndroidResolverDependencies.xml
