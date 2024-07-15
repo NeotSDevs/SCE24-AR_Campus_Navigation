@@ -707,7 +707,7 @@ namespace Google.XR.ARCoreExtensions.Samples.Geospatial
                     && _anchorObjects.Count < _storageLimit)
                 {
                     // Set anchor on screen tap.
-                    PlaceAnchorByScreenTap(Input.GetTouch(0).position);
+                    //PlaceAnchorByScreenTap(Input.GetTouch(0).position);
                 }
 
                 // Hide anchor settings and toggles if the storage limit has been reached.
