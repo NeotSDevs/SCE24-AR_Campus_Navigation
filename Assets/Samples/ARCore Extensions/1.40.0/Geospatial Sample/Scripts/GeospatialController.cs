@@ -243,7 +243,7 @@ namespace Google.XR.ARCoreExtensions.Samples.Geospatial
         /// Accuracy threshold for altitude and longitude that can be treated as localization
         /// completed.
         /// </summary>
-        private const double _horizontalAccuracyThreshold = 20;
+        private const double _horizontalAccuracyThreshold = 10;
 
         /// <summary>
         /// Determines if the anchor settings panel is visible in the UI.
