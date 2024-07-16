@@ -4,6 +4,8 @@ using TMPro;
 using System.IO;
 using Unity.VisualScripting;
 using System;
+using Google.XR.ARCoreExtensions.GeospatialCreator.Internal;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -30,7 +32,6 @@ public class JSONFile
 
 public class PointManager : MonoBehaviour
 {
-    public GameObject playerManager;
     public GameObject userInterfaceManager;
     public GameObject pointManager; // Reference to Point Manager (Will appear as target in the Inspector)
     public GameObject templatePoint; // Reference to a template point that will be used to spawn points (Will appear as target in the Inspector)
@@ -38,16 +39,20 @@ public class PointManager : MonoBehaviour
     List<Transform> pointTransforms = new List<Transform>(); // List of point transforms
     List<TextMeshPro> textMeshPros = new List<TextMeshPro>(); // List of TextMeshPro components
 
+    public float movementThreshold = 0.01f; // Adjust this value to set sensitivity
+    public float timeThreshold = 5.0f; // Time the movement should be below threshold
+    private float minimalMovementTime = 0f;
+    private bool isAnchorStable = false;
+    private Vector3 lastPosition;
+
+    private GameObject newPointsOrigin;
+
     // Start is called before the first frame update
     void Start()
     {
+        lastPosition = this.transform.position;
         templatePoint.SetActive(false);
-        // Add current children points transforms and their textMeshPros to the lists 
-        foreach (Transform point in pointManager.transform)
-        {
-            pointTransforms.Add(point);
-            textMeshPros.Add(point.transform.GetChild(0).GetComponent<TextMeshPro>());
-        }
+
 
         //DrawLines();
     }
@@ -55,16 +60,33 @@ public class PointManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        UpdateTextMeshPros();
+        if (pointTransforms.Count > 0)
+        {
+            UpdateTextMeshPros();
+        }
+
+        if (!isAnchorStable)
+        {
+            CheckAnchorStability();
+        }
     }
+
+    public bool GetIsAnchorStable() { return isAnchorStable; }
 
     public void AddPoint(string name)
     {
         // Get the current camera position
         Vector3 cameraPosition = Camera.main.transform.position;
 
-        // Instantiate a new point at the camera position and the identity quaternion rotation
-        GameObject newPoint = Instantiate(templatePoint, cameraPosition, Quaternion.identity, pointManager.transform);
+        if (!GameObject.Find("pointsorigin"))
+        {
+            newPointsOrigin = new GameObject("pointsorigin");
+            newPointsOrigin.transform.position = this.transform.position;
+        }
+
+        // Instantiate a new point at the camera position
+        GameObject newPoint = Instantiate(templatePoint, cameraPosition, Quaternion.identity, newPointsOrigin.transform);
+
         if (string.IsNullOrEmpty(name))
         {
             newPoint.name = "point" + UnityEngine.Random.ColorHSV().ToHexString();
@@ -109,10 +131,10 @@ public class PointManager : MonoBehaviour
                       "\"pos_x\":" + point.transform.localPosition.x + "," +
                       "\"pos_y\":" + point.transform.localPosition.y + "," +
                       "\"pos_z\":" + point.transform.localPosition.z + "," +
-                      "\"rot_x\":" + point.transform.localRotation.x + "," +
-                     "\"rot_y\":" + point.transform.localRotation.y + "," +
-                     "\"rot_z\":" + point.transform.localRotation.z + "," +
-                     "\"rot_w\":" + point.transform.localRotation.w +
+                      "\"rot_x\":" + 0 + "," +
+                     "\"rot_y\":" + 0 + "," +
+                     "\"rot_z\":" + 0 + "," +
+                     "\"rot_w\":" + 1 +
                      "}";
             writer.WriteLine(pointEntry + (i < pointTransforms.Count - 1 ? "," : ""));
             i++;
@@ -183,11 +205,18 @@ public class PointManager : MonoBehaviour
             // Get local X and Z positions of a point (relative to origin point/anchor)
             float xLocalPosition = pointTransforms[i].localPosition.x;
             float zLocalPosition = pointTransforms[i].localPosition.z;
+            float xLocalRotation = pointTransforms[i].localRotation.x;
+            float yLocalPosition = pointTransforms[i].localRotation.y;
+            float zLocalRotation = pointTransforms[i].localRotation.z;
+            float wLocalPosition = pointTransforms[i].localRotation.w;
+
             // Get point name
             string name = pointTransforms[i].name;
 
             // Update the text with the positions
-            textMeshPros[i].text = $"{name}\nL_X: {xLocalPosition:F2}\nL_Z: {zLocalPosition:F2}";
+            textMeshPros[i].text = $"{name}" +
+                $"\nL_X: {xLocalPosition:F2}" +
+                $"\n L_Z: {zLocalPosition:F2}";
 
             // Make the text face the camera (billboard effect)
             Vector3 lookAtPos = new Vector3(Camera.main.transform.position.x, textMeshPros[i].transform.position.y, Camera.main.transform.position.z);
@@ -199,37 +228,64 @@ public class PointManager : MonoBehaviour
     {
         JSONFile jsonfile = ParseJsonFile();
 
+        GameObject oldPointsOrigin = GameObject.Find("pointsorigin");
+        if (oldPointsOrigin != null)
+        {
+            Destroy(oldPointsOrigin);
+            pointTransforms.Clear();
+            textMeshPros.Clear();
+        }
+
+        newPointsOrigin = new GameObject("pointsorigin");
+        newPointsOrigin.transform.position = this.transform.position;
         foreach (var point in jsonfile.points)
         {
-            if (!string.Equals(point.point_name, "OriginPoint"))  // Don't load the origin point again
-            {
-                // Point position relative to the pointManager/Anchor position
-                float newPointPositionX = point.pos_x + pointManager.transform.localPosition.x;
-                float newPointPositionY = point.pos_y + pointManager.transform.localPosition.y;
-                float newPointPositionZ = point.pos_z + pointManager.transform.localPosition.z;
+            // Create new point object
+            GameObject newPoint = Instantiate(templatePoint, newPointsOrigin.transform, false);
 
-                Vector3 newPointPosition = new Vector3(newPointPositionX, newPointPositionY, newPointPositionZ);
-                Quaternion newPointRotation = new Quaternion(point.rot_x, point.rot_y, point.rot_z, point.rot_w);
-                GameObject newPoint = Instantiate(templatePoint, newPointPosition, newPointRotation, pointManager.transform);
-                newPoint.name = point.point_name;
+            // Set new point's position relative to pointmanager/anchor (from saved position)
+            newPoint.transform.localPosition = new Vector3(point.pos_x, point.pos_y, point.pos_z);
 
-                // Add the new point's transform to the pointTransforms list
-                pointTransforms.Add(newPoint.transform);
+            // Set new point's name (from save file)
+            newPoint.name = point.point_name;
 
-                // Add the TextMeshPro component of the new point to the textMeshPros list
-                textMeshPros.Add(newPoint.transform.GetChild(0).GetComponent<TextMeshPro>());
+            // Add the new point's transform to the pointTransforms list
+            pointTransforms.Add(newPoint.transform);
 
-                // Show point
-                newPoint.SetActive(true);
+            // Add the TextMeshPro component of the new point to the textMeshPros list
+            textMeshPros.Add(newPoint.transform.GetChild(0).GetComponent<TextMeshPro>());
 
-                // Hide points to show them later when collision occurs
-                // newPoint.GetComponent<Renderer>().enabled = false;
-                // newPoint.transform.GetChild(0).GetComponent<TextMeshPro>().GetComponent<Renderer>().enabled = false;
-            }
+            // Show point
+            newPoint.SetActive(true);
+
+            // Hide points to show them later when collision occurs
+            // newPoint.GetComponent<Renderer>().enabled = false;
+            // newPoint.transform.GetChild(0).GetComponent<TextMeshPro>().GetComponent<Renderer>().enabled = false;
         }
 
         UserInterfaceManager uiscript = userInterfaceManager.GetComponent<UserInterfaceManager>();
         uiscript.UpdateDropdownOptions();
-        PlayerManager playerscript = playerManager.GetComponent<PlayerManager>();
     }
+
+    public void CheckAnchorStability()
+    {
+        Vector3 currentPosition = this.transform.position;
+        float movement = Vector3.Distance(currentPosition, lastPosition);
+
+        if (movement < movementThreshold)
+        {
+            minimalMovementTime += Time.deltaTime;
+            if (minimalMovementTime >= timeThreshold && !isAnchorStable)
+            {
+                isAnchorStable = true;
+            }
+        }
+        else
+        {
+            minimalMovementTime = 0f;
+        }
+
+        lastPosition = currentPosition;
+    }
+
 }

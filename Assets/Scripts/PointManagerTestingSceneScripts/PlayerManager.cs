@@ -37,7 +37,7 @@ public class PlayerManager : MonoBehaviour
         {
             if (!hasFoundFirstPoint)
             {
-                this.GetComponent<SphereCollider>().radius += 0.04f;
+                this.GetComponent<SphereCollider>().radius += 1.0f;
             }
         }
         else
@@ -109,6 +109,7 @@ public class PlayerManager : MonoBehaviour
         newLineRenderer.startWidth = 0.3f;
         newLineRenderer.endWidth = 0.3f;
         newLineRenderer.material = guideLineMaterial;
+        newLineRenderer.textureMode = LineTextureMode.Tile;
     }
 
     public void DrawLineFromCameraToPoint(GameObject point)

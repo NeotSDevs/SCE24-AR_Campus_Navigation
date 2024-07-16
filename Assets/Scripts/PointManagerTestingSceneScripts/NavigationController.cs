@@ -7,7 +7,7 @@ using UnityEngine;
 public class NavigationController : MonoBehaviour
 {
     public GameObject playerManager;
-    public Material debugLinesMaterial;
+    //public Material debugLinesMaterial;
     private bool foundNextPoint = false;
 
     void Update()
@@ -78,7 +78,13 @@ public class NavigationController : MonoBehaviour
                             // מכבים את הגדילה של הרדיוס של הפוגע
                             other.gameObject.GetComponent<NavigationController>().foundNextPoint = false;
                         }
-                        script.GetCollidedPoints().Last().GetComponent<SphereCollider>().radius = 0.5f;
+
+                        if (other.gameObject != destinationPoint)
+                        {
+                            collidedPoints.Last().GetComponent<SphereCollider>().radius = 0.5f;
+
+                        }
+
                         script.AddCollidedPoint(this.gameObject);
 
                         // להדליק את הרדיוס התנגשות לכל הנקודות שכיבינו במסלול

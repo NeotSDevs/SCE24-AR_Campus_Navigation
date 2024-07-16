@@ -14,7 +14,7 @@ public class UserInterfaceManager : MonoBehaviour
     // User Panel and children
     public GameObject userPanel;
     public TMP_Dropdown userPanelDropdown;
-    public string userPanelDropdownSelectedItem;
+    string userPanelDropdownSelectedItem;
     public Button userPanelNavigateButton;
 
     // Admin Panel and children
@@ -22,7 +22,12 @@ public class UserInterfaceManager : MonoBehaviour
     public GameObject addPointNamePanel;
     public TMP_InputField addPointNamePanelInputField;
 
+    // User type selection panel
+    public GameObject userTypeSelectionPanel;
+
     public GameObject pointManager;
+    private bool isAnchorStable = false;
+
     public GameObject playerManager;
 
     // Start is called before the first frame update
@@ -32,6 +37,7 @@ public class UserInterfaceManager : MonoBehaviour
         userPanel.SetActive(false);
         adminPanel.SetActive(false);
         messagePanel.SetActive(false);
+        userTypeSelectionPanel.SetActive(false);
 
         // Add listener to the dropdown's onValueChanged event
         userPanelDropdown.onValueChanged.AddListener(OnDropdownValueChanged);
@@ -40,7 +46,11 @@ public class UserInterfaceManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        if (!isAnchorStable)
+        {
+            isAnchorStable = pointManager.GetComponent<PointManager>().GetIsAnchorStable();
+            userTypeSelectionPanel.SetActive(isAnchorStable);
+        }
     }
 
     void OnDestroy()
