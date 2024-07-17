@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
 using System;
+using Unity.Services.CloudSave;
+using Unity.Services.CloudSave.Models;
+using System.Text.RegularExpressions;
 
 
 
@@ -14,6 +17,10 @@ public class authPanel : MonoBehaviour
     public TMP_InputField UsernameField;
     public TMP_InputField PasswordField;
     public TMP_Text errorText;
+    public GameObject userPanel;
+    private Regex regex = new Regex(@"^[^\s@]+(@ac)?\.sce\.ac\.il$");
+
+
 
 
     // Start is called before the first frame update
@@ -44,8 +51,18 @@ public class authPanel : MonoBehaviour
     try
     {
         await AuthenticationService.Instance.SignUpWithUsernamePasswordAsync(username, password);
+        
+        var playerData = new Dictionary<string, object>{
+          {"Role","client"}};
+        await CloudSaveService.Instance.Data.Player.SaveAsync(playerData);
         errorText.text ="SignUp is successful.";
+        this.gameObject.SetActive(false);
+        userPanel.SetActive(true);
+
+
+
     }
+
     catch (AuthenticationException ex)
     {
         // Compare error code to AuthenticationErrorCodes
@@ -66,6 +83,8 @@ public class authPanel : MonoBehaviour
     {
         await AuthenticationService.Instance.SignInWithUsernamePasswordAsync(username, password);
         errorText.text ="SignIn is successful.";
+        this.gameObject.SetActive(false);
+        userPanel.SetActive(true);
     }
     catch (AuthenticationException ex)
     {
@@ -85,15 +104,28 @@ public class authPanel : MonoBehaviour
     {
         // Get the inputs field text
         string username = UsernameField.text.ToString();
-        
+
+
         string password = PasswordField.text.ToString();
         await SignUpWithUsernamePasswordAsync(username, password);
     }
     public async void SignIn()
     {
+        try{
+            
         // Get the inputs field text
         string username = UsernameField.text.ToString();
-        string password = PasswordField.text.ToString();
-        await SignInWithUsernamePasswordAsync(username, password);
+        if(regex.IsMatch(username)){
+            string password = PasswordField.text.ToString();
+            await SignInWithUsernamePasswordAsync(username, password);
+        }
+        
+        else{
+            errorText.text = "Invalid email address";
+        }
+        }
+        catch(Exception e){
+            errorText.text = e.Message;
+        }
     }
 }
