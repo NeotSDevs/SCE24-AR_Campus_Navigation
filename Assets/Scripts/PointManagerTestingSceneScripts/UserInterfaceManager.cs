@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using TMPro;
 using Unity.XR.CoreUtils;
 using UnityEditor;
@@ -95,9 +96,14 @@ public class UserInterfaceManager : MonoBehaviour
     {
         dropDownOptions.Clear();
         PointManager script = pointManager.GetComponent<PointManager>();
-        foreach (Transform point in script.GetPointTransforms())
+        List<Transform> pointTransforms = script.GetPointTransforms();
+        List<string> pointTypes = script.GetPointTypes();
+        for (int i = 0;i< pointTransforms.Count;i++)
         {
-            dropDownOptions.Add(point.name);
+            if(pointTypes[i]=="Destination Point")
+            {
+                dropDownOptions.Add(pointTransforms[i].name);
+            }
         }
         userPanelDropdown.ClearOptions();
         userPanelDropdown.AddOptions(dropDownOptions);
@@ -148,10 +154,11 @@ public class UserInterfaceManager : MonoBehaviour
     public void ConfirmAddPointNamePanel()
     {
         string newPointName = addPointNamePanelInputField.text.ToString();
+        string newPointType = addPointPanelDropdownSelectedItem;
         PointManager script = pointManager.GetComponent<PointManager>();
         if (!script.PointExists(newPointName))
         {
-            script.AddPoint(newPointName);
+            script.AddPoint(newPointName,newPointType);
             addPointNamePanelInputField.text = "";
             addPointNamePanel.SetActive(false);
         }
