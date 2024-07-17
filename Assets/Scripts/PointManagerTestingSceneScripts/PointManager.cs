@@ -17,6 +17,7 @@ using UnityEditor;
 public class Point
 {
     public string point_name;
+    public string point_type;
     public float pos_x;
     public float pos_y;
     public float pos_z;
@@ -42,6 +43,7 @@ public class PointManager : MonoBehaviour
     public GameObject templatePoint; // Reference to a template point that will be used to spawn points (Will appear as target in the Inspector)
 
     List<Transform> pointTransforms = new List<Transform>(); // List of point transforms
+    List<string> pointTypes = new List<string>();
     List<TextMeshPro> textMeshPros = new List<TextMeshPro>(); // List of TextMeshPro components
 
     public float movementThreshold = 0.01f; // Adjust this value to set sensitivity
@@ -82,8 +84,9 @@ public class PointManager : MonoBehaviour
 
     public bool GetIsAnchorStable() { return isAnchorStable; }
 
-    public void AddPoint(string name)
+    public void AddPoint(string name, string type)
     {
+        
         // Get the current camera position
         Vector3 cameraPosition = Camera.main.transform.position;
 
@@ -113,6 +116,9 @@ public class PointManager : MonoBehaviour
         // Add the new point's transform to the pointTransforms list
         pointTransforms.Add(newPoint.transform);
 
+        //Add the new point's type to the pointTypes list
+        pointTypes.Add(type);
+
         // Add the TextMeshPro component of the new point to the textMeshPros list
         textMeshPros.Add(newPoint.transform.GetChild(0).GetComponent<TextMeshPro>());
 
@@ -127,6 +133,11 @@ public class PointManager : MonoBehaviour
         return pointTransforms;
     }
 
+    public List<string> GetPointTypes()
+    {
+        return pointTypes;
+    }
+
     public void SavePoints()
     {
         string pointsListPath = Application.persistentDataPath + "/PointsList.json";
@@ -135,22 +146,21 @@ public class PointManager : MonoBehaviour
         writer.Close();
         writer = new StreamWriter(pointsListPath, true);
         writer.WriteLine("{\"points\":[");
-        int i = 0;
-        foreach (Transform point in pointTransforms)
+        for(int i = 0; i < pointTransforms.Count; i++)
         {
             string pointEntry =
                       "{" +
-                      "\"point_name\":" + "\"" + point.name + "\"" + "," +
-                      "\"pos_x\":" + point.transform.localPosition.x + "," +
-                      "\"pos_y\":" + point.transform.localPosition.y + "," +
-                      "\"pos_z\":" + point.transform.localPosition.z + "," +
+                      "\"point_name\":" + "\"" + pointTransforms[i].name + "\"" + "," +
+                      "\"point_type\":" + "\"" + pointTypes[i] + "\"" + "," +
+                      "\"pos_x\":" + pointTransforms[i].transform.localPosition.x + "," +
+                      "\"pos_y\":" + pointTransforms[i].transform.localPosition.y + "," +
+                      "\"pos_z\":" + pointTransforms[i].transform.localPosition.z + "," +
                       "\"rot_x\":" + 0 + "," +
                      "\"rot_y\":" + 0 + "," +
                      "\"rot_z\":" + 0 + "," +
                      "\"rot_w\":" + 1 +
                      "}";
             writer.WriteLine(pointEntry + (i < pointTransforms.Count - 1 ? "," : ""));
-            i++;
         }
         writer.WriteLine("]}");
         writer.Close();
@@ -246,6 +256,7 @@ public class PointManager : MonoBehaviour
         {
             Destroy(oldPointsOrigin);
             pointTransforms.Clear();
+            pointTypes.Clear();
             textMeshPros.Clear();
         }
 
@@ -266,6 +277,9 @@ public class PointManager : MonoBehaviour
 
             // Add the new point's transform to the pointTransforms list
             pointTransforms.Add(newPoint.transform);
+
+            //Add the new point's type to the pointTypes list
+            pointTypes.Add(point.point_type);
 
             // Add the TextMeshPro component of the new point to the textMeshPros list
             textMeshPros.Add(newPoint.transform.GetChild(0).GetComponent<TextMeshPro>());
