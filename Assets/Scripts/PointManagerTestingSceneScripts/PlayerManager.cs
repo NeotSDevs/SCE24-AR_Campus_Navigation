@@ -18,7 +18,8 @@ public class PlayerManager : MonoBehaviour
     public Material guideLineMaterial;
 
     private List<GameObject> collidedPoints = new List<GameObject>(); // List of point positions
-    private GameObject destinationPoint;
+    private GameObject selectedDestinationPoint;
+    private GameObject prevDestinationPoint;
     private bool hasFoundFirstPoint = false;
     private GameObject guideLine;
     private float distanceToDestination = 0.0f;
@@ -26,18 +27,18 @@ public class PlayerManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        messagePanel.SetActive(false);
         InitializeGuideLine();
+        messagePanel.SetActive(false);
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (destinationPoint)
+        if (selectedDestinationPoint)
         {
             if (!hasFoundFirstPoint)
             {
-                this.GetComponent<SphereCollider>().radius += 1.0f;
+                this.GetComponent<SphereCollider>().radius += 0.5f;
             }
         }
         else
@@ -49,15 +50,18 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
-    public GameObject GetDestinationPoint() { return destinationPoint; }
+    public GameObject GetDestinationPoint() { return selectedDestinationPoint; }
     public void SetDestinationPoint(string destinationPointName)
     {
-        destinationPoint = GameObject.Find(destinationPointName);
-        distanceToDestination = Vector3.Distance(this.transform.position, destinationPoint.transform.position);
+        selectedDestinationPoint = GameObject.Find(destinationPointName);
+        distanceToDestination = Vector3.Distance(this.transform.position, selectedDestinationPoint.transform.position);
     }
     public void ResetDestinationPoint()
     {
-        destinationPoint = null;
+        guideLine.SetActive(true);
+        this.GetComponent<SphereCollider>().radius = 1.0f;
+        prevDestinationPoint = selectedDestinationPoint;
+        selectedDestinationPoint = null;
         hasFoundFirstPoint = false;
     }
 
@@ -83,9 +87,9 @@ public class PlayerManager : MonoBehaviour
         }
         if (other.gameObject.CompareTag("point"))
         {
-            if (destinationPoint)
+            if (selectedDestinationPoint)
             {
-                if (Vector3.Distance(other.gameObject.transform.position, destinationPoint.transform.position) < distanceToDestination)
+                if (Vector3.Distance(other.gameObject.transform.position, selectedDestinationPoint.transform.position) < distanceToDestination)
                 {
                     hasFoundFirstPoint = true;
                 }
@@ -95,8 +99,15 @@ public class PlayerManager : MonoBehaviour
                 if (collidedPoints.Contains(other.gameObject))
                 {
                     collidedPoints.Remove(other.gameObject);
+                    if(other.gameObject == prevDestinationPoint)
+                    {
+                        guideLine.SetActive(false);
+
+                    }
                 }
             }
+
+
         }
     }
 
@@ -110,12 +121,15 @@ public class PlayerManager : MonoBehaviour
         newLineRenderer.endWidth = 0.3f;
         newLineRenderer.material = guideLineMaterial;
         newLineRenderer.textureMode = LineTextureMode.Tile;
+        guideLine.SetActive(false);
     }
 
     public void DrawLineFromCameraToPoint(GameObject point)
     {
         Vector3 cameraPosition = this.transform.position;
         cameraPosition.y -= 0.5f;
-        guideLine.GetComponent<LineRenderer>().SetPositions(new Vector3[] { cameraPosition, point.transform.position });
+        Vector3 pointPosition = point.transform.position;
+        pointPosition.y -= 0.5f;
+        guideLine.GetComponent<LineRenderer>().SetPositions(new Vector3[] { cameraPosition, pointPosition });
     }
 }

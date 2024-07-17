@@ -5,6 +5,8 @@ using System.IO;
 using Unity.VisualScripting;
 using System;
 using Google.XR.ARCoreExtensions.GeospatialCreator.Internal;
+using Google.XR.ARCoreExtensions;
+
 
 
 #if UNITY_EDITOR
@@ -32,6 +34,9 @@ public class JSONFile
 
 public class PointManager : MonoBehaviour
 {
+    //public GameObject debugtext;
+    //private TextMeshPro debugtextTMP;
+
     public GameObject userInterfaceManager;
     public GameObject pointManager; // Reference to Point Manager (Will appear as target in the Inspector)
     public GameObject templatePoint; // Reference to a template point that will be used to spawn points (Will appear as target in the Inspector)
@@ -50,6 +55,7 @@ public class PointManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        //debugtextTMP = debugtext.GetComponent<TextMeshPro>();
         lastPosition = this.transform.position;
         templatePoint.SetActive(false);
 
@@ -69,6 +75,9 @@ public class PointManager : MonoBehaviour
         {
             CheckAnchorStability();
         }
+
+        //UpdateDebugText();
+
     }
 
     public bool GetIsAnchorStable() { return isAnchorStable; }
@@ -82,6 +91,7 @@ public class PointManager : MonoBehaviour
         {
             newPointsOrigin = new GameObject("pointsorigin");
             newPointsOrigin.transform.position = this.transform.position;
+            newPointsOrigin.transform.rotation = this.transform.rotation;
         }
 
         // Instantiate a new point at the camera position
@@ -107,6 +117,9 @@ public class PointManager : MonoBehaviour
         textMeshPros.Add(newPoint.transform.GetChild(0).GetComponent<TextMeshPro>());
 
         newPoint.SetActive(true);
+
+        UserInterfaceManager uiscript = userInterfaceManager.GetComponent<UserInterfaceManager>();
+        uiscript.UpdateDropdownOptions();
     }
 
     public List<Transform> GetPointTransforms()
@@ -238,6 +251,8 @@ public class PointManager : MonoBehaviour
 
         newPointsOrigin = new GameObject("pointsorigin");
         newPointsOrigin.transform.position = this.transform.position;
+        newPointsOrigin.transform.rotation = this.transform.rotation;
+
         foreach (var point in jsonfile.points)
         {
             // Create new point object
@@ -288,4 +303,28 @@ public class PointManager : MonoBehaviour
         lastPosition = currentPosition;
     }
 
+    //private void UpdateDebugText()
+    //{
+    //    Vector3 pointManagerPosition = this.transform.position;
+    //    Quaternion pointManagerRotation = this.transform.rotation;
+
+    //    string debugText = $"Anchor Position: \n" +
+    //                       $"x: {pointManagerPosition.x}, y: {pointManagerPosition.y}, z: {pointManagerPosition.z}\n" +
+    //                       $"Anchor Rotation: \n" +
+    //                       $"x: {pointManagerRotation.x}, y: {pointManagerRotation.y}, z: {pointManagerRotation.z}, w: {pointManagerRotation.w}\n";
+
+    //    GameObject pointsOriginObject = GameObject.Find("pointsorigin");
+    //    if (pointsOriginObject)
+    //    {
+    //        Vector3 pointsOriginPosition = pointsOriginObject.transform.position;
+    //        Quaternion pointsOriginRotation = pointsOriginObject.transform.rotation;
+
+    //        debugText += $"Points Origin Position: \n" +
+    //                     $"x: {pointsOriginPosition.x}, y: {pointsOriginPosition.y}, z: {pointsOriginPosition.z}\n" +
+    //                     $"Points Origin Rotation: \n" +
+    //                     $"x: {pointsOriginRotation.x}, y: {pointsOriginRotation.y}, z: {pointsOriginRotation.z}, w: {pointsOriginRotation.w}";
+    //    }
+
+    //    debugtextTMP.text = debugText;
+    //}
 }

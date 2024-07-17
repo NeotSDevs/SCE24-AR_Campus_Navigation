@@ -14,7 +14,7 @@ public class NavigationController : MonoBehaviour
     {
         if (foundNextPoint)
         {
-            this.gameObject.GetComponent<SphereCollider>().radius += 1.0f;
+            this.gameObject.GetComponent<SphereCollider>().radius += 0.5f;
         }
     }
 
@@ -77,12 +77,11 @@ public class NavigationController : MonoBehaviour
                             other.GetComponent<SphereCollider>().enabled = false;
                             // מכבים את הגדילה של הרדיוס של הפוגע
                             other.gameObject.GetComponent<NavigationController>().foundNextPoint = false;
-                        }
 
-                        if (other.gameObject != destinationPoint)
-                        {
-                            collidedPoints.Last().GetComponent<SphereCollider>().radius = 0.5f;
-
+                            if (other.gameObject != destinationPoint)
+                            {
+                                collidedPoints.Last().GetComponent<SphereCollider>().radius = 0.5f;
+                            }
                         }
 
                         script.AddCollidedPoint(this.gameObject);

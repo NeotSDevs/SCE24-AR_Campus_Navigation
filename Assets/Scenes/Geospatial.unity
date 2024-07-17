@@ -3829,6 +3829,7 @@ GameObject:
   - component: {fileID: 820325854}
   - component: {fileID: 820325853}
   - component: {fileID: 820325855}
+  - component: {fileID: 820325856}
   m_Layer: 0
   m_Name: AR Geospatial Creator Anchor 1
   m_TagString: Untagged
@@ -3887,6 +3888,23 @@ MonoBehaviour:
   templatePoint: {fileID: 1196186008}
   movementThreshold: 0.01
   timeThreshold: 5
+--- !u!114 &820325856
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 820325852}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4af367250325f24baa3e1b3baa09cbd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  creatorAnchor: {fileID: 820325853}
+  earthManager: {fileID: 691323912}
+  desiredAccuracyThreshold: 5
+  maxWaitTime: 60
+  samplesForAverage: 10
 --- !u!1 &827461619
 GameObject:
   m_ObjectHideFlags: 0
@@ -6220,7 +6238,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1258378107
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7056,6 +7074,8 @@ GameObject:
   - component: {fileID: 1451910693}
   - component: {fileID: 1451910692}
   - component: {fileID: 1451910696}
+  - component: {fileID: 1451910697}
+  - component: {fileID: 1451910698}
   m_Layer: 0
   m_Name: AR Camera
   m_TagString: MainCamera
@@ -7189,6 +7209,54 @@ MonoBehaviour:
   pointManager: {fileID: 820325852}
   navigationController: {fileID: 1196186008}
   guideLineMaterial: {fileID: 2100000, guid: ad5b9df59fb63a542bebcaff513e7b2f, type: 2}
+--- !u!135 &1451910697
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1451910690}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 1
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!54 &1451910698
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1451910690}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &1471100010
 GameObject:
   m_ObjectHideFlags: 0

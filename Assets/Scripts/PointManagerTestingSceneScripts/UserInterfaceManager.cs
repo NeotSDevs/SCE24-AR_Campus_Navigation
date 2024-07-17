@@ -16,6 +16,7 @@ public class UserInterfaceManager : MonoBehaviour
     public TMP_Dropdown userPanelDropdown;
     string userPanelDropdownSelectedItem;
     public Button userPanelNavigateButton;
+    private List<string> dropDownOptions;
 
     // Admin Panel and children
     public GameObject adminPanel;
@@ -33,6 +34,7 @@ public class UserInterfaceManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        dropDownOptions = new List<string>();
         addPointNamePanel.SetActive(false);
         userPanel.SetActive(false);
         adminPanel.SetActive(false);
@@ -68,13 +70,14 @@ public class UserInterfaceManager : MonoBehaviour
 
     public void UpdateDropdownOptions()
     {
-        List<string> pointNames = new();
+        dropDownOptions.Clear();
         PointManager script = pointManager.GetComponent<PointManager>();
         foreach (Transform point in script.GetPointTransforms())
         {
-            pointNames.Add(point.name);
+            dropDownOptions.Add(point.name);
         }
-        userPanelDropdown.AddOptions(pointNames);
+        userPanelDropdown.ClearOptions();
+        userPanelDropdown.AddOptions(dropDownOptions);
     }
 
     public void ShowAdminPanel()
