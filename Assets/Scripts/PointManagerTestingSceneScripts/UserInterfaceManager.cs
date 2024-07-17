@@ -15,13 +15,15 @@ public class UserInterfaceManager : MonoBehaviour
     public GameObject userPanel;
     public TMP_Dropdown userPanelDropdown;
     string userPanelDropdownSelectedItem;
-    public Button userPanelNavigateButton;
     private List<string> dropDownOptions;
+    public Button userPanelNavigateButton;
 
     // Admin Panel and children
     public GameObject adminPanel;
     public GameObject addPointNamePanel;
     public TMP_InputField addPointNamePanelInputField;
+    public TMP_Dropdown addPointPanelDropdown;
+    string addPointPanelDropdownSelectedItem;
 
     // User type selection panel
     public GameObject userTypeSelectionPanel;
@@ -31,18 +33,29 @@ public class UserInterfaceManager : MonoBehaviour
 
     public GameObject playerManager;
 
+    public Image leftIndicator;
+    public Image rightIndicator;
+    public float indicatorThreshold = 10f; // Degrees
+
     // Start is called before the first frame update
     void Start()
     {
+        userPanelDropdownSelectedItem = string.Empty;
         dropDownOptions = new List<string>();
         addPointNamePanel.SetActive(false);
         userPanel.SetActive(false);
         adminPanel.SetActive(false);
         messagePanel.SetActive(false);
         userTypeSelectionPanel.SetActive(false);
+        leftIndicator.enabled = false;
+        rightIndicator.enabled = false;
 
-        // Add listener to the dropdown's onValueChanged event
-        userPanelDropdown.onValueChanged.AddListener(OnDropdownValueChanged);
+        // Add listener to the user panel dropdown's onValueChanged event
+        userPanelDropdown.onValueChanged.AddListener(OnUserPanelDropdownValueChanged);
+
+        // Add listener to the admin add point panel dropdown's onValueChanged event
+        addPointPanelDropdown.onValueChanged.AddListener(OnAdminAddPointPanelDropdownValueChanged);
+        OnAdminAddPointPanelDropdownValueChanged(0);
     }
 
     // Update is called once per frame
@@ -53,19 +66,29 @@ public class UserInterfaceManager : MonoBehaviour
             isAnchorStable = pointManager.GetComponent<PointManager>().GetIsAnchorStable();
             userTypeSelectionPanel.SetActive(isAnchorStable);
         }
+
+        userPanelNavigateButton.interactable = userPanelDropdownSelectedItem.Length > 0;
+
+        ShowIndicators();
     }
 
     void OnDestroy()
     {
         // Remove the listener when the script is destroyed to prevent memory leaks
-        userPanelDropdown.onValueChanged.RemoveListener(OnDropdownValueChanged);
+        userPanelDropdown.onValueChanged.RemoveListener(OnUserPanelDropdownValueChanged);
+        // Remove the listener when the script is destroyed to prevent memory leaks
+        addPointPanelDropdown.onValueChanged.RemoveListener(OnAdminAddPointPanelDropdownValueChanged);
     }
 
     // This method will be called when the dropdown value changes
-    void OnDropdownValueChanged(int index)
+    void OnUserPanelDropdownValueChanged(int index)
     {
         userPanelDropdownSelectedItem = userPanelDropdown.options[index].text;
-        userPanelNavigateButton.interactable = true;
+    }
+
+    void OnAdminAddPointPanelDropdownValueChanged(int index)
+    {
+        addPointPanelDropdownSelectedItem = addPointPanelDropdown.options[index].text;
     }
 
     public void UpdateDropdownOptions()
@@ -142,5 +165,37 @@ public class UserInterfaceManager : MonoBehaviour
     {
         PlayerManager script = playerManager.GetComponent<PlayerManager>();
         script.SetDestinationPoint(userPanelDropdownSelectedItem);
+    }
+
+    private void ShowIndicators()
+    {
+        GameObject guideLineObj = playerManager.GetComponent<PlayerManager>().GetGuideLine();
+
+        if (guideLineObj == null) return;
+
+        LineRenderer guideLineRenderer = guideLineObj.GetComponent<LineRenderer>();
+
+        if (guideLineRenderer == null || guideLineRenderer.positionCount < 2) return;
+
+        Vector3 lineEnd = guideLineRenderer.GetPosition(1);
+
+        // Check if lineEnd is within the camera's view frustum
+        Plane[] planes = GeometryUtility.CalculateFrustumPlanes(playerManager.GetComponent<Camera>());
+        bool isVisible = GeometryUtility.TestPlanesAABB(planes, new Bounds(lineEnd, Vector3.one));
+
+        // Calculate the relative position of the lineEnd to the camera
+        Vector3 relativePos = playerManager.GetComponent<Camera>().transform.InverseTransformPoint(lineEnd);
+
+        // Enable indicators based on the visibility and relative position
+        if (!isVisible && guideLineObj.activeSelf)
+        {
+            leftIndicator.enabled = relativePos.x < 0;
+            rightIndicator.enabled = relativePos.x > 0;
+        }
+        else
+        {
+            leftIndicator.enabled = false;
+            rightIndicator.enabled = false;
+        }
     }
 }
