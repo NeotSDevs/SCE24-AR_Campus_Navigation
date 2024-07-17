@@ -76,6 +76,8 @@ public class PlayerManager : MonoBehaviour
         return distanceToDestination;
     }
 
+    public GameObject GetGuideLine() { return guideLine; }
+
     // Function called when two colliders initially collide
     private void OnTriggerEnter(Collider other)
     {
