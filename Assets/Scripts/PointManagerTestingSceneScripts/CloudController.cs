@@ -1,10 +1,16 @@
 using System;
 using Unity.Services.Core;
 using UnityEngine;
+using System.Threading.Tasks;
+using Unity.Services.Authentication;
+
+
+
 
 
 public class CloudController : MonoBehaviour
 {
+
     // Start is called before the first frame update
     void Start()
     {
@@ -28,7 +34,7 @@ public class CloudController : MonoBehaviour
 		}
 	}
 
-    async Task SignUpWithUsernamePasswordAsync(string username, string password)
+    public  async Task SignUpWithUsernamePasswordAsync(string username, string password)
 {
     try
     {
@@ -48,7 +54,7 @@ public class CloudController : MonoBehaviour
         Debug.LogException(ex);
     }
 }
-async Task SignInWithUsernamePasswordAsync(string username, string password)
+private async Task SignInWithUsernamePasswordAsync(string username, string password)
 {
     try
     {
