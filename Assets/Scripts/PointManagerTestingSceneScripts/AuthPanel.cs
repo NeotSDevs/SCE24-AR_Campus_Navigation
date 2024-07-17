@@ -128,4 +128,25 @@ public class authPanel : MonoBehaviour
             errorText.text = e.Message;
         }
     }
+    public async void AnonymouslySignIn()
+    {
+        try{
+            await AuthenticationService.Instance.SignInAnonymouslyAsync();
+            errorText.text ="SignIn is successful.";
+            this.gameObject.SetActive(false);
+            userPanel.SetActive(true);
+        }
+        catch (AuthenticationException ex)
+        {
+            // Compare error code to AuthenticationErrorCodes
+            // Notify the player with the proper error message
+            errorText.text = ex.Message;
+        }
+        catch (RequestFailedException ex)
+        {
+            // Compare error code to CommonErrorCodes
+            // Notify the player with the proper error message
+            errorText.text = ex.Message;
+        }
+    }
 }
