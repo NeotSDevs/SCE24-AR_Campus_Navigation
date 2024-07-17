@@ -64,8 +64,8 @@ public class UserInterfaceManager : MonoBehaviour
     {
         if (!isAnchorStable)
         {
-            isAnchorStable = pointManager.GetComponent<PointManager>().GetIsAnchorStable();
-            userTypeSelectionPanel.SetActive(isAnchorStable);
+            // isAnchorStable = pointManager.GetComponent<PointManager>().GetIsAnchorStable();
+            // userTypeSelectionPanel.SetActive(isAnchorStable);
         }
 
         userPanelNavigateButton.interactable = userPanelDropdownSelectedItem.Length > 0;
