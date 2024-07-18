@@ -6,6 +6,8 @@ using Unity.VisualScripting;
 using System;
 using Google.XR.ARCoreExtensions.GeospatialCreator.Internal;
 using Google.XR.ARCoreExtensions;
+using UnityEditor.Experimental.GraphView;
+
 
 
 
@@ -51,6 +53,8 @@ public class PointManager : MonoBehaviour
     private float minimalMovementTime = 0f;
     private bool isAnchorStable = false;
     private Vector3 lastPosition;
+    private float heightThreshold = 5.0f;
+    private float pointHeightFromFloor = 1.0f;
 
     private GameObject newPointsOrigin;
 
@@ -97,8 +101,18 @@ public class PointManager : MonoBehaviour
             newPointsOrigin.transform.rotation = this.transform.rotation;
         }
 
+        // Set new point height
+        float newPointPosY = (int)(cameraPosition.y / heightThreshold) * heightThreshold + pointHeightFromFloor; 
+
+        // Set new point position
+        Vector3 newPointPos = new Vector3(cameraPosition.x, newPointPosY, cameraPosition.z);
+
         // Instantiate a new point at the camera position
-        GameObject newPoint = Instantiate(templatePoint, cameraPosition, Quaternion.identity, newPointsOrigin.transform);
+        GameObject newPoint = Instantiate(templatePoint, newPointPos, Quaternion.identity, newPointsOrigin.transform);
+
+
+        
+        // Set point to one of the levels
 
         if (string.IsNullOrEmpty(name))
         {
@@ -341,4 +355,9 @@ public class PointManager : MonoBehaviour
 
     //    debugtextTMP.text = debugText;
     //}
+
+    public float GetLevel(GameObject go)
+    {
+        return (int)(go.transform.position.y / heightThreshold) * heightThreshold + pointHeightFromFloor;
+    }
 }

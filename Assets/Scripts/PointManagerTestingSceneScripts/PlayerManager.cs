@@ -18,11 +18,14 @@ public class PlayerManager : MonoBehaviour
     public Material guideLineMaterial;
 
     private List<GameObject> collidedPoints = new List<GameObject>(); // List of point positions
+    private GameObject actualDestinationPoint;
     private GameObject selectedDestinationPoint;
     private GameObject prevDestinationPoint;
     private bool hasFoundFirstPoint = false;
     private GameObject guideLine;
     private float distanceToDestination = 0.0f;
+    private bool isLookingForElevator = false;
+
 
     // Start is called before the first frame update
     void Start()
@@ -38,7 +41,7 @@ public class PlayerManager : MonoBehaviour
         {
             if (!hasFoundFirstPoint)
             {
-                this.GetComponent<SphereCollider>().radius += 0.5f;
+                this.GetComponent<SphereCollider>().radius += 0.2f;
             }
         }
         else
@@ -53,8 +56,44 @@ public class PlayerManager : MonoBehaviour
     public GameObject GetDestinationPoint() { return selectedDestinationPoint; }
     public void SetDestinationPoint(string destinationPointName)
     {
-        selectedDestinationPoint = GameObject.Find(destinationPointName);
-        distanceToDestination = Vector3.Distance(this.transform.position, selectedDestinationPoint.transform.position);
+        collidedPoints.Clear();
+        PointManager script = pointManager.GetComponent<PointManager>();
+        float selectedDestinationHeight = script.GetLevel(GameObject.Find(destinationPointName));
+        float cameraHeight = script.GetLevel(this.gameObject);
+
+        if(selectedDestinationHeight == cameraHeight) //on same level
+        {
+            selectedDestinationPoint = GameObject.Find(destinationPointName);
+            distanceToDestination = Vector3.Distance(this.transform.position, selectedDestinationPoint.transform.position);
+        }
+        else
+        {
+            isLookingForElevator = true;
+            float minDistance = float.PositiveInfinity;
+            int minPointIndex = -1;
+            for(int i = 0; i < script.GetPointTransforms().Count; i++) // look for elevator or stairs point
+            {
+                if(script.GetPointTypes()[i] == "Elevator Point" || script.GetPointTypes()[i] == "Stairs Point")
+                {
+                    float distanceToPoint = Vector3.Distance(this.transform.position, script.GetPointTransforms()[i].position);
+                    if (distanceToPoint < minDistance)
+                    {
+                        minDistance = distanceToPoint;
+                        minPointIndex = i;
+                    }
+                }
+            }
+            if(minPointIndex != -1)
+            {
+                selectedDestinationPoint = script.GetPointTransforms()[minPointIndex].gameObject; // set destination point to elevator point
+                actualDestinationPoint = GameObject.Find(destinationPointName); // save actual destination point
+            }
+            else
+            {
+                Debug.Log("Can't find Elevator Point");
+            }
+        }
+
     }
     public void ResetDestinationPoint()
     {
@@ -108,8 +147,18 @@ public class PlayerManager : MonoBehaviour
                     }
                 }
             }
+            if (isLookingForElevator)
+            {
+                float selectedDestinationHeight = script.GetLevel(actualDestinationPoint);
+                float cameraHeight = script.GetLevel(this.gameObject);
+                if(selectedDestinationHeight == cameraHeight)
+                {
+                    SetDestinationPoint(actualDestinationPoint.name);
+                    isLookingForElevator = false;
+                    actualDestinationPoint = null;
+                }
 
-
+            }
         }
     }
 
