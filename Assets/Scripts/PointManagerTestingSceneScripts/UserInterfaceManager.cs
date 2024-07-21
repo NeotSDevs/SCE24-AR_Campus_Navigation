@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
@@ -9,22 +10,32 @@ using UnityEngine.UI;
 
 public class UserInterfaceManager : MonoBehaviour
 {
+    // Auth Panel
+    public GameObject authPanel;
+
     // Message Panel and children
     public GameObject messagePanel;
 
-    // User Panel and children
-    public GameObject userPanel;
-    public TMP_Dropdown userPanelDropdown;
-    string userPanelDropdownSelectedItem;
+    // Navigation Panel and children
+    public GameObject navigationPanel;
+    public TMP_Dropdown navigationPanelDropdown;
+    string navigationPanelDropdownSelectedItem;
+    private List<string> navigationDropDownOptions;
     private List<string> dropDownOptions;
-    public Button userPanelNavigateButton;
+    public Button navigationPanelNavigateButton;
 
     // Admin Panel and children
     public GameObject adminPanel;
-    public GameObject addPointNamePanel;
-    public TMP_InputField addPointNamePanelInputField;
+
+    public GameObject addPointPanel;
+    public TMP_InputField addPointPanelInputField;
     public TMP_Dropdown addPointPanelDropdown;
     string addPointPanelDropdownSelectedItem;
+
+    public GameObject removePointPanel;
+    public TMP_Dropdown removePointPanelDropdown;
+    string removePointPanelDropdownSelectedItem;
+    public Button removePointPanelRemoveButton;
 
     // User type selection panel
     public GameObject userTypeSelectionPanel;
@@ -41,21 +52,31 @@ public class UserInterfaceManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        userPanelDropdownSelectedItem = string.Empty;
+        authPanel.SetActive(true);
+        navigationPanelDropdownSelectedItem = string.Empty;
+        addPointPanelDropdownSelectedItem = string.Empty;
+        removePointPanelDropdownSelectedItem = string.Empty;
+        navigationDropDownOptions = new List<string>();
         dropDownOptions = new List<string>();
-        addPointNamePanel.SetActive(false);
-        userPanel.SetActive(false);
+        addPointPanel.SetActive(false);
+        removePointPanel.SetActive(false);
+        navigationPanel.SetActive(false);
         adminPanel.SetActive(false);
         messagePanel.SetActive(false);
         userTypeSelectionPanel.SetActive(false);
         leftIndicator.enabled = false;
         rightIndicator.enabled = false;
 
-        // Add listener to the user panel dropdown's onValueChanged event
-        userPanelDropdown.onValueChanged.AddListener(OnUserPanelDropdownValueChanged);
+        // Add listener to the navigation panel dropdown's onValueChanged event
+        navigationPanelDropdown.onValueChanged.AddListener(OnNavigationPanelDropdownValueChanged);
 
         // Add listener to the admin add point panel dropdown's onValueChanged event
         addPointPanelDropdown.onValueChanged.AddListener(OnAdminAddPointPanelDropdownValueChanged);
+
+        // Add listener to the admin add point panel dropdown's onValueChanged event
+        removePointPanelDropdown.onValueChanged.AddListener(OnAdminRemovePointPanelDropdownValueChanged);
+        
+        // Set admin panel dropdown selected item value to Bridge Point
         OnAdminAddPointPanelDropdownValueChanged(0);
     }
 
@@ -68,45 +89,66 @@ public class UserInterfaceManager : MonoBehaviour
             // userTypeSelectionPanel.SetActive(isAnchorStable);
         }
 
-        userPanelNavigateButton.interactable = userPanelDropdownSelectedItem.Length > 0;
 
         ShowIndicators();
     }
 
     void OnDestroy()
     {
-        // Remove the listener when the script is destroyed to prevent memory leaks
-        userPanelDropdown.onValueChanged.RemoveListener(OnUserPanelDropdownValueChanged);
-        // Remove the listener when the script is destroyed to prevent memory leaks
+        // Remove the listeners when the script is destroyed to prevent memory leaks
+        navigationPanelDropdown.onValueChanged.RemoveListener(OnNavigationPanelDropdownValueChanged);
         addPointPanelDropdown.onValueChanged.RemoveListener(OnAdminAddPointPanelDropdownValueChanged);
+        removePointPanelDropdown.onValueChanged.RemoveListener(OnAdminRemovePointPanelDropdownValueChanged);
     }
 
     // This method will be called when the dropdown value changes
-    void OnUserPanelDropdownValueChanged(int index)
+    void OnNavigationPanelDropdownValueChanged(int index)
     {
-        userPanelDropdownSelectedItem = userPanelDropdown.options[index].text;
+        navigationPanelDropdownSelectedItem = navigationPanelDropdown.options[index].text;
     }
 
     void OnAdminAddPointPanelDropdownValueChanged(int index)
     {
         addPointPanelDropdownSelectedItem = addPointPanelDropdown.options[index].text;
     }
+    void OnAdminRemovePointPanelDropdownValueChanged(int index)
+    {
+        removePointPanelDropdownSelectedItem = removePointPanelDropdown.options[index].text;
+    }
 
     public void UpdateDropdownOptions()
     {
+        navigationDropDownOptions.Clear();
         dropDownOptions.Clear();
+        navigationPanelDropdown.ClearOptions();
+        removePointPanelDropdown.ClearOptions();
         PointManager script = pointManager.GetComponent<PointManager>();
         List<Transform> pointTransforms = script.GetPointTransforms();
         List<string> pointTypes = script.GetPointTypes();
         for (int i = 0;i< pointTransforms.Count;i++)
         {
+            dropDownOptions.Add(pointTransforms[i].name);
             if(pointTypes[i]=="Destination Point")
             {
-                dropDownOptions.Add(pointTransforms[i].name);
+                navigationDropDownOptions.Add(pointTransforms[i].name);
             }
         }
-        userPanelDropdown.ClearOptions();
-        userPanelDropdown.AddOptions(dropDownOptions);
+        navigationPanelDropdown.AddOptions(navigationDropDownOptions);
+        removePointPanelDropdown.AddOptions(dropDownOptions);
+
+        if (navigationPanelDropdown.options.Count > 0 || navigationPanelDropdown.options.Count <= 1)
+        {
+            navigationPanelDropdownSelectedItem = navigationPanelDropdown.options[0].text;
+        }
+
+        if (navigationPanelDropdown.options.Count > 0 || removePointPanelDropdown.options.Count <= 1)
+        {
+            removePointPanelDropdownSelectedItem = removePointPanelDropdown.options[0].text;
+        }
+
+        navigationPanelNavigateButton.interactable = navigationPanelDropdownSelectedItem != null;
+
+        removePointPanelRemoveButton.interactable = removePointPanelDropdownSelectedItem != null;
     }
 
     public void ShowAdminPanel()
@@ -117,19 +159,19 @@ public class UserInterfaceManager : MonoBehaviour
         }
         else
         {
-            if (userPanel.activeInHierarchy)
+            if (navigationPanel.activeInHierarchy)
             {
-                userPanel.SetActive(false);
+                navigationPanel.SetActive(false);
             }
             adminPanel.SetActive(true);
         }
     }
 
-    public void ShowUserPanel()
+    public void ShowNavigationPanel()
     {
-        if (userPanel.activeInHierarchy)
+        if (navigationPanel.activeInHierarchy)
         {
-            userPanel.SetActive(false);
+            navigationPanel.SetActive(false);
         }
         else
         {
@@ -137,30 +179,40 @@ public class UserInterfaceManager : MonoBehaviour
             {
                 adminPanel.SetActive(false);
             }
-            userPanel.SetActive(true);
+            navigationPanel.SetActive(true);
         }
     }
 
-    public void ShowAddPointNamePanel()
+    public void ShowAddPointPanel()
     {
-        addPointNamePanel.SetActive(true);
+        addPointPanel.SetActive(true);
     }
 
-    public void HideAddPointNamePanel()
+    public void HideAddPointPanel()
     {
-        addPointNamePanel.SetActive(false);
+        addPointPanel.SetActive(false);
     }
 
-    public void ConfirmAddPointNamePanel()
+    public void ShowRemovePointPanel()
     {
-        string newPointName = addPointNamePanelInputField.text.ToString();
+        removePointPanel.SetActive(true);
+    }
+
+    public void HideRemovePointPanel()
+    {
+        removePointPanel.SetActive(false);
+    }
+
+    public void ConfirmAddPointPanel()
+    {
+        string newPointName = addPointPanelInputField.text.ToString();
         string newPointType = addPointPanelDropdownSelectedItem;
         PointManager script = pointManager.GetComponent<PointManager>();
         if (!script.PointExists(newPointName))
         {
             script.AddPoint(newPointName,newPointType);
-            addPointNamePanelInputField.text = "";
-            addPointNamePanel.SetActive(false);
+            addPointPanelInputField.text = "";
+            addPointPanel.SetActive(false);
         }
         else
         {
@@ -171,7 +223,15 @@ public class UserInterfaceManager : MonoBehaviour
     public void OnNavigatePressed()
     {
         PlayerManager script = playerManager.GetComponent<PlayerManager>();
-        script.SetDestinationPoint(userPanelDropdownSelectedItem);
+        script.SetDestinationPoint(navigationPanelDropdownSelectedItem);
+        navigationPanel.SetActive(false);
+    }
+
+    public void OnRemovePointPressed()
+    {
+        PointManager script = pointManager.GetComponent<PointManager>();
+        script.RemovePoint(removePointPanelDropdownSelectedItem);
+        removePointPanel.SetActive(false);
     }
 
     private void ShowIndicators()

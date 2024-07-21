@@ -7,9 +7,7 @@ using System;
 using Google.XR.ARCoreExtensions.GeospatialCreator.Internal;
 using Google.XR.ARCoreExtensions;
 using UnityEditor.Experimental.GraphView;
-
-
-
+using Newtonsoft.Json;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -43,6 +41,7 @@ public class PointManager : MonoBehaviour
     public GameObject userInterfaceManager;
     public GameObject pointManager; // Reference to Point Manager (Will appear as target in the Inspector)
     public GameObject templatePoint; // Reference to a template point that will be used to spawn points (Will appear as target in the Inspector)
+    public GameObject cloudController;
 
     List<Transform> pointTransforms = new List<Transform>(); // List of point transforms
     List<string> pointTypes = new List<string>();
@@ -55,7 +54,7 @@ public class PointManager : MonoBehaviour
     private Vector3 lastPosition;
     private float heightThreshold = 5.0f;
     private float pointHeightFromFloor = 1.0f;
-
+    private bool pointsVisible = false;
     private GameObject newPointsOrigin;
 
     // Start is called before the first frame update
@@ -90,7 +89,7 @@ public class PointManager : MonoBehaviour
 
     public void AddPoint(string name, string type)
     {
-        
+
         // Get the current camera position
         Vector3 cameraPosition = Camera.main.transform.position;
 
@@ -102,7 +101,7 @@ public class PointManager : MonoBehaviour
         }
 
         // Set new point height
-        float newPointPosY = (int)(cameraPosition.y / heightThreshold) * heightThreshold + pointHeightFromFloor; 
+        float newPointPosY = (int)(cameraPosition.y / heightThreshold) * heightThreshold + pointHeightFromFloor;
 
         // Set new point position
         Vector3 newPointPos = new Vector3(cameraPosition.x, newPointPosY, cameraPosition.z);
@@ -111,7 +110,7 @@ public class PointManager : MonoBehaviour
         GameObject newPoint = Instantiate(templatePoint, newPointPos, Quaternion.identity, newPointsOrigin.transform);
 
 
-        
+
         // Set point to one of the levels
 
         if (string.IsNullOrEmpty(name))
@@ -140,6 +139,8 @@ public class PointManager : MonoBehaviour
 
         UserInterfaceManager uiscript = userInterfaceManager.GetComponent<UserInterfaceManager>();
         uiscript.UpdateDropdownOptions();
+
+        SavePoint(newPoint, type);
     }
 
     public List<Transform> GetPointTransforms()
@@ -152,54 +153,45 @@ public class PointManager : MonoBehaviour
         return pointTypes;
     }
 
-    public void SavePoints()
+    public void SavePoint(GameObject point, string pointType)
     {
-        string pointsListPath = Application.persistentDataPath + "/PointsList.json";
-        StreamWriter writer = new StreamWriter(pointsListPath, false);
-        writer.WriteLine("");
-        writer.Close();
-        writer = new StreamWriter(pointsListPath, true);
-        writer.WriteLine("{\"points\":[");
-        for(int i = 0; i < pointTransforms.Count; i++)
+        string pointEntry =
+                     "{" +
+                     "\"point_name\":" + "\"" + point.name + "\"" + "," +
+                     "\"point_type\":" + "\"" + pointType + "\"" + "," +
+                     "\"pos_x\":" + point.transform.localPosition.x + "," +
+                     "\"pos_y\":" + point.transform.localPosition.y + "," +
+                     "\"pos_z\":" + point.transform.localPosition.z + "," +
+                     "\"rot_x\":" + 0 + "," +
+                    "\"rot_y\":" + 0 + "," +
+                    "\"rot_z\":" + 0 + "," +
+                    "\"rot_w\":" + 1 +
+                    "}";
+        Point pointObj = JsonConvert.DeserializeObject<Point>(pointEntry);
+        cloudController.GetComponent<CloudController>().SavePoint(pointObj);
+    }
+
+    public void RemovePoint(string name)
+    {
+        // Remove point from game world
+        for (int i = 0; i < pointTransforms.Count; i++)
         {
-            string pointEntry =
-                      "{" +
-                      "\"point_name\":" + "\"" + pointTransforms[i].name + "\"" + "," +
-                      "\"point_type\":" + "\"" + pointTypes[i] + "\"" + "," +
-                      "\"pos_x\":" + pointTransforms[i].transform.localPosition.x + "," +
-                      "\"pos_y\":" + pointTransforms[i].transform.localPosition.y + "," +
-                      "\"pos_z\":" + pointTransforms[i].transform.localPosition.z + "," +
-                      "\"rot_x\":" + 0 + "," +
-                     "\"rot_y\":" + 0 + "," +
-                     "\"rot_z\":" + 0 + "," +
-                     "\"rot_w\":" + 1 +
-                     "}";
-            writer.WriteLine(pointEntry + (i < pointTransforms.Count - 1 ? "," : ""));
+            if (pointTransforms[i].name == name)
+            {
+                pointTransforms.RemoveAt(i);
+                pointTypes.RemoveAt(i);
+                textMeshPros.RemoveAt(i);
+            }
         }
-        writer.WriteLine("]}");
-        writer.Close();
+        Destroy(GameObject.Find(name));
+        cloudController.GetComponent<CloudController>().RemovePoint(name);
+
+        UserInterfaceManager uiscript = userInterfaceManager.GetComponent<UserInterfaceManager>();
+        uiscript.UpdateDropdownOptions();
     }
 
     public bool PointExists(string name)
     {
-        //// Checking point exists in the file
-        // string pointsListPath = Application.persistentDataPath + "/PointsList.json";
-        // if (File.Exists(pointsListPath))
-        // {
-        //     JSONFile jsonfile = ParseJsonFile();
-        //     foreach (var point in jsonfile.points)
-        //     {
-        //         if (point.point_name == name)
-        //         {
-        //             return true;
-        //         }
-        //     }
-        //     return false;
-        // }
-        // else
-        // {
-        //     return false;
-        // }
         foreach (Transform point in pointTransforms)
         {
             if (string.Equals(name, point.name)) return true;
@@ -302,12 +294,34 @@ public class PointManager : MonoBehaviour
             newPoint.SetActive(true);
 
             // Hide points to show them later when collision occurs
-            // newPoint.GetComponent<Renderer>().enabled = false;
-            // newPoint.transform.GetChild(0).GetComponent<TextMeshPro>().GetComponent<Renderer>().enabled = false;
+            newPoint.GetComponent<Renderer>().enabled = false;
+            newPoint.transform.GetChild(0).GetComponent<TextMeshPro>().GetComponent<Renderer>().enabled = false;
         }
 
         UserInterfaceManager uiscript = userInterfaceManager.GetComponent<UserInterfaceManager>();
         uiscript.UpdateDropdownOptions();
+    }
+
+    public void ChangePointVisibility()
+    {
+        if(pointsVisible)
+        {
+            pointsVisible = false;
+            foreach (Transform point in pointTransforms)
+            {
+                point.GetComponent<Renderer>().enabled = false;
+                point.transform.GetChild(0).GetComponent<TextMeshPro>().GetComponent<Renderer>().enabled = false;
+            }
+        }
+        else
+        {
+            pointsVisible = true;
+            foreach (Transform point in pointTransforms)
+            {
+                point.GetComponent<Renderer>().enabled = true;
+                point.transform.GetChild(0).GetComponent<TextMeshPro>().GetComponent<Renderer>().enabled = true;
+            }
+        }
     }
 
     public void CheckAnchorStability()

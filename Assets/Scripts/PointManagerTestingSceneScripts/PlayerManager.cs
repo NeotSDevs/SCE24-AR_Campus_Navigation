@@ -122,7 +122,6 @@ public class PlayerManager : MonoBehaviour
     // Function called when two colliders initially collide
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log(isLookingForElevator);
         PointManager script = pointManager.GetComponent<PointManager>();
 
         if (other.gameObject.tag == "line")

@@ -17,7 +17,10 @@ public class authPanel : MonoBehaviour
     public TMP_InputField UsernameField;
     public TMP_InputField PasswordField;
     public TMP_Text errorText;
+    public GameObject navigationPanel;
     public GameObject userPanel;
+    public GameObject adminPanel;
+    public CloudController cloudController;
     private Regex regex = new Regex(@"^[^\s@]+(@ac)?\.sce\.ac\.il$");
 
 
@@ -26,79 +29,100 @@ public class authPanel : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+
     }
     async void Awake()
-	{
-		try
-		{
-			await UnityServices.InitializeAsync();
-		}
-		catch (Exception e)
-		{
-			Debug.LogException(e);
-		}
-	}
-
-     async Task SignUpWithUsernamePasswordAsync(string username, string password)
-{
-    try
     {
-        await AuthenticationService.Instance.SignUpWithUsernamePasswordAsync(username, password);
-        
-        var playerData = new Dictionary<string, object>{
-          {"Role","client"}};
-        await CloudSaveService.Instance.Data.Player.SaveAsync(playerData);
-        errorText.text ="SignUp is successful.";
-        this.gameObject.SetActive(false);
-        userPanel.SetActive(true);
-
-
-
+        try
+        {
+            await UnityServices.InitializeAsync();
+        }
+        catch (Exception e)
+        {
+            Debug.LogException(e);
+        }
     }
 
-    catch (AuthenticationException ex)
+    async Task SignUpWithUsernamePasswordAsync(string username, string password)
     {
-        // Compare error code to AuthenticationErrorCodes
-        // Notify the player with the proper error message
-        errorText.text = ex.Message;
-    }
-    catch (RequestFailedException ex)
-    {
-        // Compare error code to CommonErrorCodes
-        // Notify the player with the proper error message
-        errorText.text = ex.Message;
-    }
-}
+        try
+        {
+            await AuthenticationService.Instance.SignUpWithUsernamePasswordAsync(username, password);
 
- async Task SignInWithUsernamePasswordAsync(string username, string password)
-{
-    try
-    {
-        await AuthenticationService.Instance.SignInWithUsernamePasswordAsync(username, password);
-        errorText.text ="SignIn is successful.";
-        this.gameObject.SetActive(false);
-        userPanel.SetActive(true);
+            var playerData = new Dictionary<string, object>{
+                {"Role","client"},
+                {"Username",$"{username.Split("@")[0]}" } 
+            };
+            await CloudSaveService.Instance.Data.Player.SaveAsync(playerData);
+            errorText.text = "SignUp is successful.";
+            this.gameObject.SetActive(false);
+            userPanel.SetActive(true);
+
+
+
+        }
+
+        catch (AuthenticationException ex)
+        {
+            // Compare error code to AuthenticationErrorCodes
+            // Notify the player with the proper error message
+            errorText.text = ex.Message;
+        }
+        catch (RequestFailedException ex)
+        {
+            // Compare error code to CommonErrorCodes
+            // Notify the player with the proper error message
+            errorText.text = ex.Message;
+        }
     }
-    catch (AuthenticationException ex)
+
+    async Task SignInWithUsernamePasswordAsync(string username, string password)
     {
-        // Compare error code to AuthenticationErrorCodes
-        // Notify the player with the proper error message
-        errorText.text = ex.Message;
+        try
+        {
+            await AuthenticationService.Instance.SignInWithUsernamePasswordAsync(username, password);
+            errorText.text = "SignIn is successful.";
+            this.gameObject.SetActive(false);
+            var playerData = await CloudSaveService.Instance.Data.Player.LoadAsync(new HashSet<string> { "Role", "Username" });
+            if (playerData.TryGetValue("Role", out var playerRoleKey))
+            {
+                cloudController.LoadPoints();
+                if (playerRoleKey.Value.GetAs<string>().Equals("client"))
+                {
+                    // show user panel
+                    userPanel.SetActive(true);
+                    navigationPanel.GetComponent<NavigatePanel>().EnableCancelButton();
+                }
+                if (playerRoleKey.Value.GetAs<string>().Equals("admin"))
+                {
+                    // show admin panel
+                    adminPanel.SetActive(true);
+                }
+            }
+            if (playerData.TryGetValue("Username", out var usernameKey))
+            {
+                userPanel.GetComponent<UserPanel>().SetUsername(usernameKey.Value.GetAs<string>());
+            }
+        }
+        catch (AuthenticationException ex)
+        {
+            // Compare error code to AuthenticationErrorCodes
+            // Notify the player with the proper error message
+            errorText.text = ex.Message;
+        }
+        catch (RequestFailedException ex)
+        {
+            // Compare error code to CommonErrorCodes
+            // Notify the player with the proper error message
+            errorText.text = ex.Message;
+        }
     }
-    catch (RequestFailedException ex)
-    {
-        // Compare error code to CommonErrorCodes
-        // Notify the player with the proper error message
-        errorText.text = ex.Message;
-    }
-}
 
     public async void SignUp()
     {
@@ -111,30 +135,36 @@ public class authPanel : MonoBehaviour
     }
     public async void SignIn()
     {
-        try{
-            
-        // Get the inputs field text
-        string username = UsernameField.text.ToString();
-        if(regex.IsMatch(username)){
-            string password = PasswordField.text.ToString();
-            await SignInWithUsernamePasswordAsync(username, password);
+        try
+        {
+
+            // Get the inputs field text
+            string username = UsernameField.text.ToString();
+            if (regex.IsMatch(username))
+            {
+                string password = PasswordField.text.ToString();
+                await SignInWithUsernamePasswordAsync(username, password);
+            }
+
+            else
+            {
+                errorText.text = "Invalid email address";
+            }
         }
-        
-        else{
-            errorText.text = "Invalid email address";
-        }
-        }
-        catch(Exception e){
+        catch (Exception e)
+        {
             errorText.text = e.Message;
         }
     }
     public async void AnonymouslySignIn()
     {
-        try{
+        try
+        {
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
-            errorText.text ="SignIn is successful.";
+            cloudController.LoadPoints();
+            errorText.text = "SignIn is successful.";
             this.gameObject.SetActive(false);
-            userPanel.SetActive(true);
+            navigationPanel.SetActive(true);
         }
         catch (AuthenticationException ex)
         {

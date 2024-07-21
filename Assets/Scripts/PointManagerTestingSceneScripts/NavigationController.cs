@@ -23,7 +23,7 @@ public class NavigationController : MonoBehaviour
     {
         if (foundNextPoint)
         {
-            this.gameObject.GetComponent<SphereCollider>().radius += 0.1f;
+            this.gameObject.GetComponent<SphereCollider>().radius += 1.0f;
         }
     }
 
