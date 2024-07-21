@@ -41,7 +41,7 @@ public class PlayerManager : MonoBehaviour
         {
             if (!hasFoundFirstPoint)
             {
-                this.GetComponent<SphereCollider>().radius += 0.2f;
+                this.GetComponent<SphereCollider>().radius += 0.1f;
             }
         }
         else
@@ -56,6 +56,7 @@ public class PlayerManager : MonoBehaviour
     public GameObject GetDestinationPoint() { return selectedDestinationPoint; }
     public void SetDestinationPoint(string destinationPointName)
     {
+        this.GetComponent<SphereCollider>().radius = 0.5f;
         collidedPoints.Clear();
         PointManager script = pointManager.GetComponent<PointManager>();
         float selectedDestinationHeight = script.GetLevel(GameObject.Find(destinationPointName));
@@ -85,8 +86,9 @@ public class PlayerManager : MonoBehaviour
             }
             if(minPointIndex != -1)
             {
-                selectedDestinationPoint = script.GetPointTransforms()[minPointIndex].gameObject; // set destination point to elevator point
                 actualDestinationPoint = GameObject.Find(destinationPointName); // save actual destination point
+                selectedDestinationPoint = script.GetPointTransforms()[minPointIndex].gameObject; // set destination point to elevator point
+                distanceToDestination = Vector3.Distance(this.transform.position, selectedDestinationPoint.transform.position);
             }
             else
             {
@@ -120,6 +122,7 @@ public class PlayerManager : MonoBehaviour
     // Function called when two colliders initially collide
     private void OnTriggerEnter(Collider other)
     {
+        Debug.Log(isLookingForElevator);
         PointManager script = pointManager.GetComponent<PointManager>();
 
         if (other.gameObject.tag == "line")
@@ -153,6 +156,7 @@ public class PlayerManager : MonoBehaviour
                 float cameraHeight = script.GetLevel(this.gameObject);
                 if(selectedDestinationHeight == cameraHeight)
                 {
+                    hasFoundFirstPoint = true;
                     SetDestinationPoint(actualDestinationPoint.name);
                     isLookingForElevator = false;
                     actualDestinationPoint = null;
