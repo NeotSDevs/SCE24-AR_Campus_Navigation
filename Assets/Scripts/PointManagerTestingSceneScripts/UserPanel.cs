@@ -7,6 +7,7 @@ using UnityEngine.UI;
 public class UserPanel : MonoBehaviour
 {
     public GameObject navigatePanel;
+    public GameObject authPanel;
 
     public TMP_Text userGreetingText;
 

@@ -13,6 +13,7 @@ using UnityEngine.UIElements;
 public class PlayerManager : MonoBehaviour
 {
     public GameObject messagePanel;
+    public TMP_Text messagePanelText;
     public GameObject pointManager;
     public GameObject navigationController;
     public Material guideLineMaterial;
@@ -31,7 +32,6 @@ public class PlayerManager : MonoBehaviour
     void Start()
     {
         InitializeGuideLine();
-        messagePanel.SetActive(false);
     }
 
     // Update is called once per frame
@@ -41,7 +41,7 @@ public class PlayerManager : MonoBehaviour
         {
             if (!hasFoundFirstPoint)
             {
-                this.GetComponent<SphereCollider>().radius += 0.1f;
+                this.GetComponent<SphereCollider>().radius += 1.0f;
             }
         }
         else
@@ -52,7 +52,7 @@ public class PlayerManager : MonoBehaviour
             }
         }
     }
-
+    
     public GameObject GetDestinationPoint() { return selectedDestinationPoint; }
     public void SetDestinationPoint(string destinationPointName)
     {
@@ -76,19 +76,27 @@ public class PlayerManager : MonoBehaviour
             {
                 if(script.GetPointTypes()[i] == "Elevator Point" || script.GetPointTypes()[i] == "Stairs Point")
                 {
-                    float distanceToPoint = Vector3.Distance(this.transform.position, script.GetPointTransforms()[i].position);
-                    if (distanceToPoint < minDistance)
+                    if(cameraHeight == script.GetLevel(script.GetPointTransforms()[i].gameObject))
                     {
-                        minDistance = distanceToPoint;
-                        minPointIndex = i;
+                        float distanceToPoint = Vector3.Distance(this.transform.position, script.GetPointTransforms()[i].position);
+                        if (distanceToPoint < minDistance)
+                        {
+                            minDistance = distanceToPoint;
+                            minPointIndex = i;
+                        }
                     }
+                    
                 }
             }
+            Debug.Log("minPointIndex=" + minPointIndex);
             if(minPointIndex != -1)
             {
                 actualDestinationPoint = GameObject.Find(destinationPointName); // save actual destination point
                 selectedDestinationPoint = script.GetPointTransforms()[minPointIndex].gameObject; // set destination point to elevator point
                 distanceToDestination = Vector3.Distance(this.transform.position, selectedDestinationPoint.transform.position);
+                Debug.Log("actual=" + actualDestinationPoint.name);
+                Debug.Log("selected=" + selectedDestinationPoint.name);
+
             }
             else
             {
@@ -142,25 +150,50 @@ public class PlayerManager : MonoBehaviour
                 if (collidedPoints.Contains(other.gameObject))
                 {
                     collidedPoints.Remove(other.gameObject);
-                    if(other.gameObject == prevDestinationPoint)
+                    if (other.gameObject == prevDestinationPoint)
                     {
                         guideLine.SetActive(false);
-
+                        //reached destination point
+                        if (script.GetPointType(other.gameObject) == "Destination Point")
+                        {
+                            messagePanelText.text = $"Reached {prevDestinationPoint.name}!";
+                            messagePanel.SetActive(true);
+                        }
+                        else if (script.GetPointType(other.gameObject) == "Elevator Point" || (script.GetPointType(other.gameObject) == "Stairs Point"))
+                        {
+                            int floor = (int)(Math.Floor(script.GetLevel(actualDestinationPoint) / script.GetHeightThreshold()));
+                            if (floor == 0)
+                            {
+                                messagePanelText.text = $"Go to ground floor";
+                            }
+                            else if (floor == 1)
+                            {
+                                messagePanelText.text = $"Go to gallery (G) floor";
+                            }
+                            else
+                            {
+                                messagePanelText.text = $"Go to floor {floor}";
+                            }
+                            messagePanel.SetActive(true);
+                        }
                     }
                 }
             }
             if (isLookingForElevator)
             {
                 float selectedDestinationHeight = script.GetLevel(actualDestinationPoint);
-                float cameraHeight = script.GetLevel(this.gameObject);
+                float cameraHeight = script.GetLevel(this.gameObject.transform.position.y);
                 if(selectedDestinationHeight == cameraHeight)
                 {
+                    if(messagePanel.activeInHierarchy)
+                    {
+                        messagePanel.SetActive(false);
+                    }
                     hasFoundFirstPoint = true;
                     SetDestinationPoint(actualDestinationPoint.name);
                     isLookingForElevator = false;
                     actualDestinationPoint = null;
                 }
-
             }
         }
     }

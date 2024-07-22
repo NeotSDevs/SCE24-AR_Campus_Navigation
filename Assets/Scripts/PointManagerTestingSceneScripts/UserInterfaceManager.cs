@@ -10,6 +10,7 @@ using UnityEngine.UI;
 
 public class UserInterfaceManager : MonoBehaviour
 {
+    public TMP_Text cameraHeightText;
     // Auth Panel
     public GameObject authPanel;
 
@@ -63,7 +64,9 @@ public class UserInterfaceManager : MonoBehaviour
         navigationPanel.SetActive(false);
         adminPanel.SetActive(false);
         messagePanel.SetActive(false);
-        userTypeSelectionPanel.SetActive(false);
+        //userTypeSelectionPanel.SetActive(false);
+        leftIndicator.gameObject.SetActive(true);
+        rightIndicator.gameObject.SetActive(true);
         leftIndicator.enabled = false;
         rightIndicator.enabled = false;
 
@@ -75,7 +78,7 @@ public class UserInterfaceManager : MonoBehaviour
 
         // Add listener to the admin add point panel dropdown's onValueChanged event
         removePointPanelDropdown.onValueChanged.AddListener(OnAdminRemovePointPanelDropdownValueChanged);
-        
+
         // Set admin panel dropdown selected item value to Bridge Point
         OnAdminAddPointPanelDropdownValueChanged(0);
     }
@@ -85,12 +88,15 @@ public class UserInterfaceManager : MonoBehaviour
     {
         if (!isAnchorStable)
         {
-            // isAnchorStable = pointManager.GetComponent<PointManager>().GetIsAnchorStable();
-            // userTypeSelectionPanel.SetActive(isAnchorStable);
+            isAnchorStable = pointManager.GetComponent<PointManager>().GetIsAnchorStable();
         }
 
-
         ShowIndicators();
+        float height = (playerManager.transform.position - pointManager.transform.position).y;
+        cameraHeightText.text = "height(relative):" + height +
+            "\ncurrent level:" + pointManager.GetComponent<PointManager>().GetLevel(height)
+            + $"\nplayer position: ({playerManager.transform.position.x:F2},{playerManager.transform.position.y:F2},{playerManager.transform.position.z:F2})"
+            + $"\nanchor position:({pointManager.transform.position.x:F2},{pointManager.transform.position.y:F2},{pointManager.transform.position.z:F2})";
     }
 
     void OnDestroy()
@@ -125,10 +131,10 @@ public class UserInterfaceManager : MonoBehaviour
         PointManager script = pointManager.GetComponent<PointManager>();
         List<Transform> pointTransforms = script.GetPointTransforms();
         List<string> pointTypes = script.GetPointTypes();
-        for (int i = 0;i< pointTransforms.Count;i++)
+        for (int i = 0; i < pointTransforms.Count; i++)
         {
             dropDownOptions.Add(pointTransforms[i].name);
-            if(pointTypes[i]=="Destination Point")
+            if (pointTypes[i] == "Destination Point")
             {
                 navigationDropDownOptions.Add(pointTransforms[i].name);
             }
@@ -136,12 +142,12 @@ public class UserInterfaceManager : MonoBehaviour
         navigationPanelDropdown.AddOptions(navigationDropDownOptions);
         removePointPanelDropdown.AddOptions(dropDownOptions);
 
-        if (navigationPanelDropdown.options.Count > 0 || navigationPanelDropdown.options.Count <= 1)
+        if (navigationPanelDropdown.options.Count > 0 && navigationPanelDropdown.options.Count <= 1)
         {
             navigationPanelDropdownSelectedItem = navigationPanelDropdown.options[0].text;
         }
 
-        if (navigationPanelDropdown.options.Count > 0 || removePointPanelDropdown.options.Count <= 1)
+        if (navigationPanelDropdown.options.Count > 0 && removePointPanelDropdown.options.Count <= 1)
         {
             removePointPanelDropdownSelectedItem = removePointPanelDropdown.options[0].text;
         }
@@ -175,10 +181,6 @@ public class UserInterfaceManager : MonoBehaviour
         }
         else
         {
-            if (adminPanel.activeInHierarchy)
-            {
-                adminPanel.SetActive(false);
-            }
             navigationPanel.SetActive(true);
         }
     }
@@ -210,7 +212,7 @@ public class UserInterfaceManager : MonoBehaviour
         PointManager script = pointManager.GetComponent<PointManager>();
         if (!script.PointExists(newPointName))
         {
-            script.AddPoint(newPointName,newPointType);
+            script.AddPoint(newPointName, newPointType);
             addPointPanelInputField.text = "";
             addPointPanel.SetActive(false);
         }
@@ -263,6 +265,18 @@ public class UserInterfaceManager : MonoBehaviour
         {
             leftIndicator.enabled = false;
             rightIndicator.enabled = false;
+        }
+    }
+
+    public void ToggleMessagePanel()
+    {
+        if (messagePanel.activeInHierarchy)
+        {
+            messagePanel.SetActive(false);
+        }
+        else
+        {
+            messagePanel.SetActive(true);
         }
     }
 }

@@ -1990,9 +1990,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _altitudeOffset: 0
-  _latitude: 31.530414117212814
-  _longitude: 34.60587910642067
-  _altitude: 104.9999999996566
+  _latitude: 31.24944302374312
+  _longitude: 34.789222246763266
+  _altitude: 307
   _altitudeType: 0
   _anchorManager: {fileID: 0}
 --- !u!4 &820325854
@@ -2877,12 +2877,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _ellipsoidOverride: {fileID: 0}
   _originAuthority: 0
-  _latitude: 31.530414117212814
-  _longitude: 34.605879106420666
-  _height: 105
-  _ecefX: 4478827.869545856
-  _ecefY: 3090414.717654348
-  _ecefZ: 3316216.790332621
+  _latitude: 31.24944302374312
+  _longitude: 34.789222246763266
+  _height: 307
+  _ecefX: 4482383.831198972
+  _ecefY: 3114087.6200659205
+  _ecefZ: 3289727.6435558884
   _scale: 1
 --- !u!114 &1258378108
 MonoBehaviour:

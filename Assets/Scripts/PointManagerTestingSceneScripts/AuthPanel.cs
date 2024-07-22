@@ -103,6 +103,7 @@ public class authPanel : MonoBehaviour
                 {
                     // show admin panel
                     adminPanel.SetActive(true);
+                    navigationPanel.GetComponent<NavigatePanel>().EnableCancelButton();
                 }
             }
             if (playerData.TryGetValue("Username", out var usernameKey))
@@ -165,6 +166,26 @@ public class authPanel : MonoBehaviour
             errorText.text = "SignIn is successful.";
             this.gameObject.SetActive(false);
             navigationPanel.SetActive(true);
+        }
+        catch (AuthenticationException ex)
+        {
+            // Compare error code to AuthenticationErrorCodes
+            // Notify the player with the proper error message
+            errorText.text = ex.Message;
+        }
+        catch (RequestFailedException ex)
+        {
+            // Compare error code to CommonErrorCodes
+            // Notify the player with the proper error message
+            errorText.text = ex.Message;
+        }
+    }
+
+    public void SignOut()
+    {
+        try
+        {
+            AuthenticationService.Instance.SignOut();
         }
         catch (AuthenticationException ex)
         {

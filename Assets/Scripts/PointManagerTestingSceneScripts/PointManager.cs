@@ -4,9 +4,6 @@ using TMPro;
 using System.IO;
 using Unity.VisualScripting;
 using System;
-using Google.XR.ARCoreExtensions.GeospatialCreator.Internal;
-using Google.XR.ARCoreExtensions;
-using UnityEditor.Experimental.GraphView;
 using Newtonsoft.Json;
 
 #if UNITY_EDITOR
@@ -52,9 +49,9 @@ public class PointManager : MonoBehaviour
     private float minimalMovementTime = 0f;
     private bool isAnchorStable = false;
     private Vector3 lastPosition;
-    private float heightThreshold = 5.0f;
-    private float pointHeightFromFloor = 1.0f;
-    private bool pointsVisible = false;
+    private float heightThreshold = 3.4f;
+    private float pointHeightFromFloor = 0.1f;
+    public bool pointsVisible = true;
     private GameObject newPointsOrigin;
 
     // Start is called before the first frame update
@@ -86,6 +83,7 @@ public class PointManager : MonoBehaviour
     }
 
     public bool GetIsAnchorStable() { return isAnchorStable; }
+    public float GetHeightThreshold() { return heightThreshold; }
 
     public void AddPoint(string name, string type)
     {
@@ -101,7 +99,7 @@ public class PointManager : MonoBehaviour
         }
 
         // Set new point height
-        float newPointPosY = (int)(cameraPosition.y / heightThreshold) * heightThreshold + pointHeightFromFloor;
+        float newPointPosY = GetLevel(cameraPosition.y);
 
         // Set new point position
         Vector3 newPointPos = new Vector3(cameraPosition.x, newPointPosY, cameraPosition.z);
@@ -231,21 +229,11 @@ public class PointManager : MonoBehaviour
         // Update the textMeshPro of each point with its current position
         for (int i = 0; i < pointTransforms.Count; i++)
         {
-            // Get local X and Z positions of a point (relative to origin point/anchor)
-            float xLocalPosition = pointTransforms[i].localPosition.x;
-            float zLocalPosition = pointTransforms[i].localPosition.z;
-            float xLocalRotation = pointTransforms[i].localRotation.x;
-            float yLocalPosition = pointTransforms[i].localRotation.y;
-            float zLocalRotation = pointTransforms[i].localRotation.z;
-            float wLocalPosition = pointTransforms[i].localRotation.w;
-
             // Get point name
             string name = pointTransforms[i].name;
 
             // Update the text with the positions
-            textMeshPros[i].text = $"{name}" +
-                $"\nL_X: {xLocalPosition:F2}" +
-                $"\n L_Z: {zLocalPosition:F2}";
+            textMeshPros[i].text = $"{name}";
 
             // Make the text face the camera (billboard effect)
             Vector3 lookAtPos = new Vector3(Camera.main.transform.position.x, textMeshPros[i].transform.position.y, Camera.main.transform.position.z);
@@ -373,5 +361,22 @@ public class PointManager : MonoBehaviour
     public float GetLevel(GameObject go)
     {
         return (int)(go.transform.position.y / heightThreshold) * heightThreshold + pointHeightFromFloor;
+    }
+
+    public float GetLevel(float height)
+    {
+        return (int)(height / heightThreshold) * heightThreshold + pointHeightFromFloor;
+    }
+
+    public string GetPointType(GameObject point)
+    {
+        for (int i = 0; i < pointTransforms.Count; i++)
+        {
+            if (pointTransforms[i].name == point.gameObject.name)
+            {
+                return pointTypes[i];
+            }
+        }
+        return "";
     }
 }

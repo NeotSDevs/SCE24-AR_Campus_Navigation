@@ -85,6 +85,7 @@ public class CloudController : MonoBehaviour
             Debug.LogException(ex);
         }
     }
+
     public async void SavePoint(Point pointObj)
     {
         var arguments = new Dictionary<string, object> { { "point", pointObj } };
