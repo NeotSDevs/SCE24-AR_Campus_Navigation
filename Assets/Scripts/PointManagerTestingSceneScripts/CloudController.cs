@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 public class CloudController : MonoBehaviour
 {
     public PointManager pointManager;
+    private const string customItemId = "factory_simulation_points";
     /*
    * The response from the script, used for deserialization.
    * In this example, the script would return a JSON in the format
@@ -88,14 +89,14 @@ public class CloudController : MonoBehaviour
 
     public async void SavePoint(Point pointObj)
     {
-        var arguments = new Dictionary<string, object> { { "point", pointObj } };
+        var arguments = new Dictionary<string, object> { { "point", pointObj }, { "data_id", customItemId } };
         var response = await CloudCodeService.Instance.CallEndpointAsync<CloudCodeResponse>("SavePointScript", arguments);
         Debug.Log(response.responseMessage);
     }
 
     public async void LoadPoints()
     {
-        var customItemId = "points_list";
+        
         var customItemData = await CloudSaveService.Instance.Data.Custom.LoadAllAsync(customItemId);
         string pointsListPath = Application.persistentDataPath + "/PointsList.json";
         StreamWriter writer = new StreamWriter(pointsListPath, false);
@@ -116,7 +117,7 @@ public class CloudController : MonoBehaviour
 
     public async void RemovePoint(string pointName)
     {
-        var arguments = new Dictionary<string, object> { { "point_name", pointName } };
+        var arguments = new Dictionary<string, object> { { "point_name", pointName },{ "data_id", customItemId } };
         var response = await CloudCodeService.Instance.CallEndpointAsync<CloudCodeResponse>("DeletePointScript", arguments);
         Debug.Log(response.responseMessage);
     }
