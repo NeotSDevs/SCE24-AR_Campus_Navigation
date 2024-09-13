@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,7 @@ public class NavigationController : MonoBehaviour
     private PlayerManager playerManagerScript;
     private PointManager pointManagerScript;
     public Material debugLinesMaterial;
+    public float nextPointSearchSpeed = 1.0f;
     private bool foundNextPoint = false;
 
     private void Start()
@@ -23,13 +25,29 @@ public class NavigationController : MonoBehaviour
     {
         if (foundNextPoint)
         {
-            this.gameObject.GetComponent<SphereCollider>().radius += 1.0f;
+            this.gameObject.GetComponent<SphereCollider>().radius += nextPointSearchSpeed;
         }
     }
 
     public void SetFoundNextPoint(bool foundNextPoint)
     {
         this.foundNextPoint = foundNextPoint;
+    }
+
+    public void DrawDebugLines(List<GameObject> pointTransforms)
+    {
+        for (int i = 0; i < pointTransforms.Count - 1; i++)
+        {
+            GameObject newObj = new GameObject();
+            LineRenderer newLineRenderer = newObj.AddComponent<LineRenderer>();
+            newObj.tag = "line";
+            newObj.name = "lineFrom|" + pointTransforms[i].name + "|To|" + pointTransforms[i + 1].name;
+            newLineRenderer.startWidth = 0.1f;
+            newLineRenderer.endWidth = 0.1f;
+            newLineRenderer.SetPositions(new Vector3[] { pointTransforms[i].transform.position, pointTransforms[i + 1].transform.position });
+            newLineRenderer.material = debugLinesMaterial;
+            BoxCollider newBoxCollider = newObj.AddComponent<BoxCollider>();
+        }
     }
 
     // this הנפגע
@@ -101,19 +119,7 @@ public class NavigationController : MonoBehaviour
                                 point.GetComponent<SphereCollider>().enabled = true;
                             }
 
-                            // Draw debug lines
-                            //for (int i = 0; i < collidedPoints.Count - 1; i++)
-                            //{
-                            //    GameObject newObj = new GameObject();
-                            //    LineRenderer newLineRenderer = newObj.AddComponent<LineRenderer>();
-                            //    newObj.tag = "line";
-                            //    newObj.name = "lineFrom|" + collidedPoints[i].name + "|To|" + collidedPoints[i + 1].name;
-                            //    newLineRenderer.startWidth = 0.1f;
-                            //    newLineRenderer.endWidth = 0.1f;
-                            //    newLineRenderer.SetPositions(new Vector3[] { collidedPoints[i].transform.position, collidedPoints[i + 1].transform.position });
-                            //    newLineRenderer.material = debugLinesMaterial;
-                            //    BoxCollider newBoxCollider = newObj.AddComponent<BoxCollider>();
-                            //}
+                            DrawDebugLines(collidedPoints);
 
                             playerManagerScript.ResetDestinationPoint();
 
