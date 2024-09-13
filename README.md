@@ -1,5 +1,5 @@
 ### What is this?
-The final project for our B.Sc. in Software Engineering, an Artificial Reality mobile app that shows you directions in order to navigate inside buildings by setting up points around a physical space.
+The final project for our B.Sc. in Software Engineering, an Artificial Reality mobile app that displays navigation directions inside buildings.
 
 ![image](https://github.com/user-attachments/assets/fcd4d337-b298-4645-ace6-6eab545e8173)
 
