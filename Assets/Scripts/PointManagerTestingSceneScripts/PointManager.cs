@@ -49,8 +49,8 @@ public class PointManager : MonoBehaviour
     private float minimalMovementTime = 0f;
     private bool isAnchorStable = false;
     private Vector3 lastPosition;
-    private float heightThreshold = 3.4f;
-    private float pointHeightFromFloor = 0.1f;
+    public float heightThreshold = 3.4f;
+    public float pointHeightFromFloor = 0.1f;
     public bool pointsVisible = true;
     private GameObject newPointsOrigin;
 
