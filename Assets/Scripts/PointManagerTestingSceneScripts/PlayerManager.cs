@@ -18,6 +18,8 @@ public class PlayerManager : MonoBehaviour
     public GameObject navigationController;
     public Material guideLineMaterial;
 
+    public float firstPointSearchSpeed = 1.0f;
+
     private List<GameObject> collidedPoints = new List<GameObject>(); // List of point positions
     private GameObject actualDestinationPoint;
     private GameObject selectedDestinationPoint;
@@ -41,7 +43,7 @@ public class PlayerManager : MonoBehaviour
         {
             if (!hasFoundFirstPoint)
             {
-                this.GetComponent<SphereCollider>().radius += 1.0f;
+                this.GetComponent<SphereCollider>().radius += firstPointSearchSpeed;
             }
         }
         else
