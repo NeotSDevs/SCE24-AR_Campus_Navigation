@@ -20,5 +20,6 @@ Link your unity project with Unity Cloud services in order to use Unity Cloud Sa
 You can turn a user into an admin by updating the user's player data - change the Role in Unity Cloud Save from `"client"` to `"admin"`
 
 Create a Google Developers API key and enable the Map Tiles API and ARCore API to set up a geospatial creator anchor, as well as a Cesium token. refer to this guide: https://developers.google.com/ar/geospatialcreator/unity/quickstart
-Add the key to the field in `Project Settings > XR Plug-in Management > ARCore Extensions`
+
+Add the key to the field in `Project Settings > XR Plug-in Management > ARCore Extensions` and create a Cesium token.
 ![image](https://github.com/user-attachments/assets/75730b49-2be9-49ad-a95f-d2bb0253ef1d)
